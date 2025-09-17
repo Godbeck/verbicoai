@@ -69,17 +69,18 @@ export class SpeechRecognitionService {
 }
 
 export class TextToSpeechService {
-  private synth: SpeechSynthesis;
+  private synth: SpeechSynthesis | null;
   private isSupported: boolean;
+  // Fixed SSR compatibility
 
   constructor() {
     this.isSupported =
       typeof window !== "undefined" && "speechSynthesis" in window;
-    this.synth = window.speechSynthesis;
+    this.synth = this.isSupported ? window.speechSynthesis : null;
   }
 
   speak(text: string, language: string): void {
-    if (!this.isSupported) {
+    if (!this.isSupported || !this.synth) {
       console.warn("Text-to-speech is not supported in this browser");
       return;
     }
@@ -96,7 +97,7 @@ export class TextToSpeechService {
   }
 
   stop(): void {
-    if (this.isSupported) {
+    if (this.isSupported && this.synth) {
       this.synth.cancel();
     }
   }
